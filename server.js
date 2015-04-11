@@ -4,7 +4,7 @@ fs = require('fs');
 var app = express();
 
 var http = require('http');
-http.globalAgent.maxSockets = 200000;
+http.globalAgent.maxSockets = 2000;
 
 var redis = require('redis'),
 redisClient = redis.createClient(),
@@ -52,7 +52,8 @@ app.get('/user/new', function (req, res){
                                               redisClient.set('user:' + email, newuseruuid);
                                               redisClient.set('user:' + newuseruuid + ':username', username);
                                               redisClient.set('user:' + username + ':password', password);
-                                              redisClient.set('user:' + username + ':points', 0);
+                                              redisClient.set('user:' + username + ':heartrate', 0);
+                                              redisClient.set('user:' + username + ':SpO2', 0);
                                               var responseobject = new Object();
                                               responseobject.username = username;
                                               responseobject.email = email;
