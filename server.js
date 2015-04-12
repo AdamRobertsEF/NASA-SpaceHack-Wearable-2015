@@ -491,8 +491,6 @@ app.get('/isauth', function (req, res){
         });
 });
 
-
-
 function isAuthenticated(token, callback){
     
     redisClient.get ('user:' + token + ':uuid', function(err, reply){
