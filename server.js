@@ -113,119 +113,6 @@ app.post('/user/auth', function (req,res){
             });
 });
 
-app.get('/crew/get/heartrate', function(req,res){
-        
-        var query = require('url').parse(req.url,true).query;
-        var responseobject = new Object();
-        
-        isAuthenticated(query.token, function(authenticatedUser){
-                        
-                        if (authenticatedUser){
-                            var responseobject = new Object();
-                            redisClient.get('user:' + query.uid + ':heartrate');
-                        } else {
-                            responseobject.error = 'Not Authenticated';
-                            var json = JSON.stringify(responseobject);
-                            res.send(401,json);
-                        }
-        });
-});
-
-app.get('/me/get/heartrate', function(req,res){
-
-        var query = require('url').parse(req.url,true).query;
-        var responseobject = new Object();
-        
-        isAuthenticated(query.token, function(authenticatedUser){
-                        
-                        if (authenticatedUser){
-                            var responseobject = new Object();
-                            redisClient.get('user:' + uid + ':heartrate');
-                        
-                        } else {
-                            responseobject.error = 'Not Authenticated';
-                            var json = JSON.stringify(responseobject);
-                            res.send(401,json);
-                        }
-        
-        });
-});
-
-app.post('/me/set/heartrate', function(req,res){
-                
-                var query = require('url').parse(req.url,true).query;
-                var responseobject = new Object();
-        
-                isAuthenticated(query.token, function(authenticatedUser){
-                                
-                                if (authenticatedUser){
-                                    var responseobject = new Object();
-                                    redisClient.set('user:' + uid + ':heartrate',query.amount);
-                                
-                                } else {
-                                    responseobject.error = 'Not Authenticated';
-                                    var json = JSON.stringify(responseobject);
-                                    res.send(401,json);
-                                }
-                });
-                                
-});
-
-
-app.get('/crew/get/SpO2', function(req,res){ // Blood Oxygen Level
-        
-        var query = require('url').parse(req.url,true).query;
-        var responseobject = new Object();
-        
-        isAuthenticated(query.token, function(authenticatedUser){
-                        
-                        if (authenticatedUser){
-                            var responseobject = new Object();
-                            redisClient.get('user:' + query.uid + ':SpO2',query.amount);
-                        } else {
-                            responseobject.error = 'Not Authenticated';
-                            var json = JSON.stringify(responseobject);
-                            res.send(401,json);
-                        }
-        });
-});
-
-app.get('/me/get/SpO2', function(req,res){ // Blood Oxygen Level
-                
-    var query = require('url').parse(req.url,true).query;
-    var responseobject = new Object();
-                
-    isAuthenticated(query.token, function(authenticatedUser){
-                                
-                    if (authenticatedUser){
-                        var responseobject = new Object();
-                        redisClient.get('user:' + uid + ':SpO2',query.amount);
-                                
-                    } else {
-                        responseobject.error = 'Not Authenticated';
-                        var json = JSON.stringify(responseobject);
-                        res.send(401,json);
-                    }
-    });
-});
-
-app.post('/me/set/SpO2', function(req,res){ // Blood Oxygen Level
-        
-        var query = require('url').parse(req.url,true).query;
-        var responseobject = new Object();
-        
-        isAuthenticated(query.token, function(authenticatedUser){
-                        if (authenticatedUser){
-                            var responseobject = new Object();
-                            redisClient.set('user:' + uid + ':heartrate',query.amount);
-                        } else {
-                            responseobject.error = 'Not Authenticated';
-                            var json = JSON.stringify(responseobject);
-                            res.send(401,json);
-                        }
-        });
-});
-
 app.post('/me/follow', function(req,res){
         
         var query = require('url').parse(req.url,true).query;
@@ -383,7 +270,8 @@ app.post('/me/post', function (req, res){
                         redisClient.hmset('post:' + post.id, {
                                           'uid' : authenticatedUser,
                                           'heartrate' : heartrate,
-                                          'SpO2'      : SpO2
+                                          'SpO2'      : SpO2,
+                                          'respiratoryrate' : respiratoryrate
                                           });
                         
                         var responseobject = new Object();
