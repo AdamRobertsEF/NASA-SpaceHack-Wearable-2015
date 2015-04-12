@@ -1,7 +1,7 @@
-
 var express = require('express'),
 fs = require('fs');
 var app = express();
+app.use(express.static(__dirname + '/public'));
 
 var http = require('http');
 http.globalAgent.maxSockets = 2000;
@@ -24,11 +24,26 @@ app.get('/client', function(req, res){
         res.render('index.jade');
         });
 
+app.get('/validate', function(req, res){
+        var query = require('url').parse(req.url,true).query;
+
+        var username = query.user;
+        redisClient.get ('user:' + username, function(err, reply){
+                            if (reply){
+                                res.status(409).send(username);
+                            }
+                            else{
+                                res.status(409).send('nope');
+                            }
+                         });
+});
+
 app.get('/uuid', function(req,res){
         
         res.send('uuid:' + uuid());
         });
 
+<<<<<<< HEAD
 app.post('/user/new', function (req, res){
          
          var query = require('url').parse(req.url,true).query;
@@ -61,9 +76,44 @@ app.post('/user/new', function (req, res){
                           res.send(201,json);
                           }
                           });
+=======
+app.get('/user/new', function (req, res){
+        
+        var query = require('url').parse(req.url,true).query;
+        
+        var username = query.username;
+        var email = query.email;
+        var password = query.password;
+        
+        if (username == null || password == null){
+            res.send(400,'Failed incomplete request!');
+        } else {
+            redisClient.get ('user:' + username, function(err, reply){
+                            if (reply){
+                                res.send(409,'username in use');
+                            } else {
+                                // Username not in use - Let's create the user
+                                              
+                                var newuseruuid = uuid();
+                                              
+                                redisClient.set('user:' + username, newuseruuid);
+                                redisClient.set('user:' + newuseruuid + ':username', username);
+                                redisClient.set('user:' + username + ':password', password);
+                                redisClient.set('user:' + username + ':heartrate', 0);
+                                redisClient.set('user:' + username + ':SpO2', 0);
+                                redisClient.set('user:' + username + ':unit', 0);
+                                var responseobject = new Object();
+                                responseobject.username = username;
+                                responseobject.uuid = newuseruuid;
+                                var json = JSON.stringify(responseobject);
+                                res.send(201,json);
+                            }
+            });
+>>>>>>> origin/master
          }
          });
 
+<<<<<<< HEAD
 app.post('/user/auth', function (req,res){
          
          var query = require('url').parse(req.url,true).query;
@@ -79,6 +129,68 @@ app.post('/user/auth', function (req,res){
                          var token = uuid() + uuid();
                          
                          redisClient.get('user:' + username, function (err, reply){
+=======
+app.get('/user/auth', function (req,res){
+        
+        var query = require('url').parse(req.url,true).query;
+        
+        var username = query.username;
+        var password = query.password;
+        var unit     = query.unit;
+        
+        redisClient.get('user:' + username + ':password', function(err, reply){
+                        if (reply == password) {
+                            // Correct username + password, let's generate a OAUTH token
+                        
+                            var token = uuid() + uuid();
+                        
+                            redisClient.get('user:' + username, function (err, reply){
+                                        
+                                        var uid = reply;
+                                        console.log('user has been logged in');
+                                        
+                                        //the login call will return an OAuth token, which is saved
+                                        //in the client object for later use.  Access it this way:
+                                        
+                                        var responseobject = new Object();
+                                        
+                                        redisClient.set('user:' + uid + ':token', token);
+                                        redisClient.set('user:' + token + ':uuid', uid);
+                                        redisClient.set('user:' + uid + ':unit', unit);
+                                            
+                                        responseobject.username = username;
+                                        responseobject.token = token;
+                                        responseobject.uuid = uid;
+                                        responseobject.expires_in = 86400;
+                                        var json = JSON.stringify(responseobject);
+                                        res.send(200,json);
+                                        redisClient.expire('user:' + uid + ':token', 86400);
+                                        redisClient.expire('user:' + token + ':uuid', 86400);
+                                        redisClient.expire('user:' + uid + ':unit', 86400);
+                                        console.log('token ' + token);
+                            });
+                        
+                        } else {
+                            console.log('could not log user in');
+                            console.log('username = ' + username);
+                            console.log('password = ' + password);
+                            res.send(401,'Authentication Failed!');
+                        };
+            });
+});
+
+app.post('/me/follow', function(req,res){
+        
+        var query = require('url').parse(req.url,true).query;
+        var responseobject = new Object();
+        
+        isAuthenticated(query.token, function(authenticatedUser){
+                        
+                if (authenticatedUser){
+                        var followuuid = query.uid;
+                        
+                        redisClient.sadd('user:' + authenticatedUser  + 'following', query.uid, function(err, reply){
+>>>>>>> origin/master
                                          
                                          var uid = reply;
                                          console.log('user has been logged in');

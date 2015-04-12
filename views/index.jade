@@ -6,7 +6,7 @@ html
     h1 Please Sign in or Register
 
     h2 New user?
-    form(action='/user/new' method="post")
+    form(action='/user/new' method="get")
       div
         label Desired Username: 
         input(type="text" name="username") 
@@ -21,7 +21,7 @@ html
         input(type="password" name="confirm")
       input(type="submit" value="Register!")
     h2 Existing user?
-    form(action='/user/auth' method="post")
+    form(action='/user/auth' method="get")
       div 
         label Username: 
         input(type="text" name="username")
