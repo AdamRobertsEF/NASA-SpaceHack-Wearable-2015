@@ -366,8 +366,43 @@ app.get('/me/following', function(req,res){
                                     res.send(responseobject);
                                     });
                         });
-        });
+});
 
+
+app.get('/me/post', function (req, res){
+        
+        var query = require('url').parse(req.url,true).query;
+        var token = query.token;
+        var heartrate = query.heartrate;
+        var SpO2 = query.SpO2;
+        
+        isAuthenticated(token, function(authenticatedUser){
+                        if (authenticatedUser){
+                        var post = new Object();
+                        post.id = uuid();
+                        post.uid = authenticatedUser;
+                        post.heartrate = heartrate;
+                        post.SpO2 = SpO2;
+                        
+                        redisClient.hmset('post:' + post.id, {
+                                          'uid' : authenticatedUser,
+                                          'heartrate' : heartrate,
+                                          'SpO2'      : SpO2
+                                          });
+                        
+                        var responseobject = new Object();
+                        
+                        redisClient.smembers('user:' + authenticatedUser + ':followers', function(err, reply){
+                                             reply.push(authenticatedUser);
+                                             responseobject.following = reply;
+                                             console.log('followers: ' + reply);
+                                             reply.forEach(postToGraph,post);
+                                             });
+                        } else {
+                        res.send('Cannot post - not authenticated!');
+                        }
+                        });
+        });
 
 app.get('/isauth', function (req, res){
         
