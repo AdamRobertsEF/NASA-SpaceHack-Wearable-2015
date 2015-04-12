@@ -54,6 +54,7 @@ app.get('/user/new', function (req, res){
                                               redisClient.set('user:' + username + ':password', password);
                                               redisClient.set('user:' + username + ':heartrate', 0);
                                               redisClient.set('user:' + username + ':SpO2', 0);
+                                              redisClient.set('user:' + username + ':unit', 0);
                                               var responseobject = new Object();
                                               responseobject.username = username;
                                               responseobject.email = email;
@@ -73,6 +74,7 @@ app.get('/user/auth', function (req,res){
         
         var username = query.username;
         var password = query.password;
+        var unit     = query.unit;
         
         redisClient.get('user:' + username + ':password', function(err, reply){
                         if (reply == password) {
@@ -92,7 +94,8 @@ app.get('/user/auth', function (req,res){
                                         
                                         redisClient.set('user:' + uid + ':token', token);
                                         redisClient.set('user:' + token + ':uuid', uid);
-                                        
+                                        redisClient.set('user:' + uid + ':unit', unit);
+                                            
                                         responseobject.username = username;
                                         responseobject.token = token;
                                         responseobject.uuid = uid;
@@ -101,6 +104,7 @@ app.get('/user/auth', function (req,res){
                                         res.send(200,json);
                                         redisClient.expire('user:' + uid + ':token', 86400);
                                         redisClient.expire('user:' + token + ':uuid', 86400);
+                                        redisClient.expire('user:' + uid + ':unit', 86400);
                                         console.log('token ' + token);
                             });
                         
@@ -225,6 +229,145 @@ app.get('/me/set/SpO2', function(req,res){ // Blood Oxygen Level
                         }
         });
 });
+
+app.get('/me/follow', function(req,res){
+        
+        var query = require('url').parse(req.url,true).query;
+        var responseobject = new Object();
+        
+        isAuthenticated(query.token, function(authenticatedUser){
+                        
+                if (authenticatedUser){
+                        var followuuid = query.uid;
+                        
+                        redisClient.sadd('user:' + authenticatedUser  + 'following', query.uid, function(err, reply){
+                                         
+                                         if (reply == '1'){
+                                         
+                                         var following = new Object();
+                                         var followers = new Object();
+                                         
+                                         followers.uuid = authenticatedUser;
+                                         following.uuid = query.uid;
+                                         
+                                         redisClient.sadd('user:' + query.uid  + 'followers', authenticatedUser);
+                                         
+                                         redisClient.incr('following:' + authenticatedUser, function(err, reply){
+                                                          following.count = reply;
+                                                          responseobject.following = following;
+                                                          console.log('following: '+ reply);
+                                                          
+                                                          redisClient.incr('followers:' + followuuid, function (err, reply) {
+                                                                           console.log('followers: '+ reply);
+                                                                           followers.count = reply;
+                                                                           
+                                                                           responseobject.follower = followers;
+                                                                           
+                                                                           var json = JSON.stringify(responseobject);
+                                                                           res.send(json);
+                                                                           });
+                                                          });
+                                         } else {
+                                         responseobject.error = 'Already following';
+                                         var json = JSON.stringify(responseobject);
+                                         console.log('already following!');
+                                         res.send(json);
+                                         }
+                                         
+                                         });
+                        } else {
+                        responseobject.error = 'Not Authenticated';
+                        var json = JSON.stringify(responseobject);
+                        res.send(json);
+                        }
+                        });
+        
+        
+        });
+
+app.get('/me/unfollow', function(req,res){
+        var query = require('url').parse(req.url,true).query;
+        
+        var follower = query.follower;
+        
+        isAuthenticated(token, function(uuid){
+                        if (uuid){
+                            var responseobject = new Object();
+                        
+                            redisClient.srem('user:' + uuid  + 'following', follower, function(err, reply){
+                                         
+                                         if (reply == '1'){
+                                         
+                                         var following = new Object();
+                                         var followers = new Object();
+                                         
+                                         followers.uuid = uuid;
+                                         following.uuid = follower;
+                                         
+                                         redisClient.srem('user:' + follower  + 'followers', uuid);
+                                         
+                                         redisClient.decr('following:' + uuid, function(err, reply){
+                                                          following.count = reply;
+                                                          responseobject.following = following;
+                                                          console.log('following: '+ reply);
+                                                          
+                                                          redisClient.decr('followers:' + follower, function (err, reply) {
+                                                                           console.log('followers: '+ reply);
+                                                                           followers.count = reply;
+                                                                           
+                                                                           responseobject.follower = followers;
+                                                                           
+                                                                           var json = JSON.stringify(responseobject);
+                                                                           res.send(json);
+                                                                           });
+                                                          });
+                                         
+                                         } else {
+                                             responseobject.error = 'Not following';
+                                             var json = JSON.stringify(responseobject);
+                                             console.log('not following!');
+                                             res.send(json);
+                                         }
+                                });
+                        } else {
+                            res.send('Auth:NO');
+                        }
+        });
+});
+
+app.get('/me/followers', function(req,res){
+        
+        var query = require('url').parse(req.url,true).query;
+        
+        var responseobject = new Object();
+        
+        isAuthenticated(query.token, function(authenticatedUser){
+                        
+                        if (authenticatedUser){
+                        
+                        redisClient.smembers('user:' + uuid + 'followers', function(err, reply){
+                                             responseobject.followers = reply;
+                                             var json = JSON.stringify(responseobject);
+                                             res.send(json);
+                                             });
+                        } else {
+                        responseobject.error = 'Not Authenticated';
+                        var json = JSON.stringify(responseobject);
+                        res.send(json);
+                        }
+                        });
+        });
+
+app.get('/me/following', function(req,res){
+        
+        var query = require('url').parse(req.url,true).query;
+        isAuthenticated(query.token, function(uuid){
+                        isFollowing(uuid, function(responseobject){
+                                    res.send(responseobject);
+                                    });
+                        });
+        });
+
 
 app.get('/isauth', function (req, res){
         
