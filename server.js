@@ -29,7 +29,7 @@ app.get('/uuid', function(req,res){
         res.send('uuid:' + uuid());
 });
 
-app.post('/user/new', function (req, res){
+app.get('/user/new', function (req, res){
         
         var query = require('url').parse(req.url,true).query;
         
@@ -64,7 +64,7 @@ app.post('/user/new', function (req, res){
          }
 });
 
-app.post('/user/auth', function (req,res){
+app.get('/user/auth', function (req,res){
         
         var query = require('url').parse(req.url,true).query;
         
