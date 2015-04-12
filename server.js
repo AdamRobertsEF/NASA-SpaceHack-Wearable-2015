@@ -6,6 +6,8 @@ var app = express();
 var http = require('http');
 http.globalAgent.maxSockets = 2000;
 
+app.engine('jade', require('jade').__express);
+
 var redis = require('redis'),
 redisClient = redis.createClient(),
 multi_queue;
@@ -17,6 +19,10 @@ var uuid = require('node-uuid');
 app.get('/', function(req, res){
         res.send('Please refer to API Documentation');
         });
+
+app.get('/client', function(req, res){
+        res.render('index.jade');
+});
 
 app.get('/uuid', function(req,res){
         
@@ -68,7 +74,7 @@ app.post('/user/new', function (req, res){
         }
 });
 
-app.get('/user/auth', function (req,res){
+app.post('/user/auth', function (req,res){
         
         var query = require('url').parse(req.url,true).query;
         
@@ -530,5 +536,5 @@ process.on('uncaughtException', function (err) {
            console.log('Caught exception: ' + err);
            });
 
-port = process.env.PORT || 1337;
+port = process.env.PORT || 80;
 app.listen(port);

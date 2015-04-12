@@ -1,0 +1,31 @@
+doctype html
+html
+  head
+    title Authentication  
+  body
+    h1 Please Sign in or Register
+
+    h2 New user?
+    form(action='/user/new' method="post")
+      div
+        label Desired Username: 
+        input(type="text" name="username") 
+      div
+        label Email Address:
+        input(type="text" name="email")
+      div
+        label Password:
+        input(type="password" name="password")
+      div
+        label Confirm Password:
+        input(type="password" name="confirm")
+      input(type="submit" value="Register!")
+    h2 Existing user?
+    form(action='/user/auth' method="post")
+      div 
+        label Username: 
+        input(type="text" name="username")
+      div
+        label Password:
+        input(type="password" name="password")
+      input(type="submit" value="Login!")
