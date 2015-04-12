@@ -402,7 +402,80 @@ app.get('/me/post', function (req, res){
                         res.send('Cannot post - not authenticated!');
                         }
                         });
+});
+
+app.get('/me/timeline', function (req, res){
+        
+        var query = require('url').parse(req.url,true).query;
+        var token = query.token;
+        
+        isAuthenticated(token, function(authenticatedUser){
+                        
+                        if (authenticatedUser){
+                        redisClient.lrange('user:' + authenticatedUser + ':timeline',query.start,query.start+query.count, function(err, reply){
+                                           var timeline = new Object();
+                                           timeline.posts = new Array();
+                                           var posts = new Array();
+                                           var actors = new Array();
+                                           
+                                           var uids = new Array();
+                                           
+                                           multi_queue = redisClient.multi();
+                                           multi_queue2 = redisClient.multi();
+                                           for (var i=0; i<reply.length; i++) {
+                                           multi_queue.hgetall('post:' + reply[i]);
+                                           console.log ('post.uuid:' + reply[i]);
+                                           }
+                                           
+                                           multi_queue.exec(function (err, replies) {
+                                                            console.log ('1st:' + JSON.stringify(replies));
+                                                            replies.forEach(function (reply, index) {
+                                                                            
+                                                                            posts.push(reply);
+                                                                            if (!uids.contains(reply.uid)){
+                                                                            uids.push(reply.uid);
+                                                                            multi_queue2.hgetall('user:' + reply.uid);
+                                                                            }
+                                                                            
+                                                                            });
+                                                            
+                                                            multi_queue2.exec(function (err, replies) {
+                                                                              console.log ('2nd: ' + JSON.stringify(replies))
+                                                                              ;
+                                                                              replies.forEach(function (reply, index) {
+                                                                                              console.log(reply);
+                                                                                              actors.push(reply);
+                                                                                              });
+                                                                              
+                                                                              posts.forEach(function (element, index, array){
+                                                                                            for (var i=0; i<actors.length; i++) {
+                                                                                            if (actors[i].uuid == element.uid){
+                                                                                            console.log('found actor! = ' + JSON.stringify(actors[i]));
+                                                                                            console.log ('element = ' + JSON.stringify(element));
+                                                                                            var post = new Object();
+                                                                                            post.uuid = element.uuid;
+                                                                                            post.content = element.content;
+                                                                                            post.actor = actors[i];
+                                                                                            timeline.posts.push(post);
+                                                                                            break;
+                                                                                            }
+                                                                                            }
+                                                                                            });
+                                                                              
+                                                                              var json = JSON.stringify(timeline);
+                                                                              res.send(json);
+                                                                              });
+                                                            });
+                                           });
+                        } else {
+                        var responseobject = new Object();
+                        responseobject.error = 'Not Authenticated';
+                        var json = JSON.stringify(responseobject);
+                        res.send(json);
+                        }
         });
+});
+
 
 app.get('/isauth', function (req, res){
         
