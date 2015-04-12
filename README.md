@@ -5,6 +5,7 @@ Sensors
   - Accelerometer
   - Heart Rate
   - Blood Oxygen Levels (SpO2)
+  - Respiratory Rate
 
 Visual Unit
 
