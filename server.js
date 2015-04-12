@@ -1,7 +1,7 @@
-
 var express = require('express'),
 fs = require('fs');
 var app = express();
+app.use(express.static(__dirname + '/public'));
 
 var http = require('http');
 http.globalAgent.maxSockets = 2000;
@@ -24,12 +24,26 @@ app.get('/client', function(req, res){
         res.render('index.jade');
 });
 
+app.get('/validate', function(req, res){
+        var query = require('url').parse(req.url,true).query;
+
+        var username = query.user;
+        redisClient.get ('user:' + username, function(err, reply){
+                            if (reply){
+                                res.status(409).send(username);
+                            }
+                            else{
+                                res.status(409).send('nope');
+                            }
+                         });
+});
+
 app.get('/uuid', function(req,res){
         
         res.send('uuid:' + uuid());
 });
 
-app.post('/user/new', function (req, res){
+app.get('/user/new', function (req, res){
         
         var query = require('url').parse(req.url,true).query;
         
@@ -64,7 +78,7 @@ app.post('/user/new', function (req, res){
          }
 });
 
-app.post('/user/auth', function (req,res){
+app.get('/user/auth', function (req,res){
         
         var query = require('url').parse(req.url,true).query;
         
