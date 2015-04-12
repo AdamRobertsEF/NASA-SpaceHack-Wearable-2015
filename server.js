@@ -37,41 +37,31 @@ app.post('/user/new', function (req, res){
         var email = query.email;
         var password = query.password;
         
-        if (username == null || email == null || password == null){
+        if (username == null || password == null){
             res.send(400,'Failed incomplete request!');
         } else {
-        
-        redisClient.get ('user:' + email, function(err, reply){
-                         if (reply){
-                            res.send(409,'e-mail in use');
-                         } else {
-                         // Email doesn't exist let's check if username is available
-                         redisClient.get ('user:' + username, function(err, reply){
-                                          if (reply){
-                                            res.send(409,'username in use');
-                                          } else {
-                                              // Username not in use - Let's create the user
+            redisClient.get ('user:' + username, function(err, reply){
+                            if (reply){
+                                res.send(409,'username in use');
+                            } else {
+                                // Username not in use - Let's create the user
                                               
-                                              var newuseruuid = uuid();
+                                var newuseruuid = uuid();
                                               
-                                              redisClient.set('user:' + username, newuseruuid);
-                                              redisClient.set('user:' + email, newuseruuid);
-                                              redisClient.set('user:' + newuseruuid + ':username', username);
-                                              redisClient.set('user:' + username + ':password', password);
-                                              redisClient.set('user:' + username + ':heartrate', 0);
-                                              redisClient.set('user:' + username + ':SpO2', 0);
-                                              redisClient.set('user:' + username + ':unit', 0);
-                                              var responseobject = new Object();
-                                              responseobject.username = username;
-                                              responseobject.email = email;
-                                              responseobject.uuid = newuseruuid;
-                                              var json = JSON.stringify(responseobject);
-                                              res.send(201,json);
-                                          }
-                                });
-                         }
-                });
-        }
+                                redisClient.set('user:' + username, newuseruuid);
+                                redisClient.set('user:' + newuseruuid + ':username', username);
+                                redisClient.set('user:' + username + ':password', password);
+                                redisClient.set('user:' + username + ':heartrate', 0);
+                                redisClient.set('user:' + username + ':SpO2', 0);
+                                redisClient.set('user:' + username + ':unit', 0);
+                                var responseobject = new Object();
+                                responseobject.username = username;
+                                responseobject.uuid = newuseruuid;
+                                var json = JSON.stringify(responseobject);
+                                res.send(201,json);
+                            }
+            });
+         }
 });
 
 app.post('/user/auth', function (req,res){
