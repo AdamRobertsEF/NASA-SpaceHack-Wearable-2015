@@ -17,4 +17,4 @@ Visual Unit
 > See through walls and panels — Setup targets using Qualcomm’s computer vision  SDK and replace targets within video feed from behind panel or wall.
 
 ### Version
-1.0.0
+1.0.1
