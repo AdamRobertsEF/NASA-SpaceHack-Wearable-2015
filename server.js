@@ -23,7 +23,7 @@ app.get('/uuid', function(req,res){
         res.send('uuid:' + uuid());
 });
 
-app.get('/user/new', function (req, res){
+app.post('/user/new', function (req, res){
         
         var query = require('url').parse(req.url,true).query;
         
@@ -155,7 +155,7 @@ app.get('/me/get/heartrate', function(req,res){
         });
 });
 
-app.get('/me/set/heartrate', function(req,res){
+app.post('/me/set/heartrate', function(req,res){
                 
                 var query = require('url').parse(req.url,true).query;
                 var responseobject = new Object();
@@ -213,7 +213,7 @@ app.get('/me/get/SpO2', function(req,res){ // Blood Oxygen Level
     });
 });
 
-app.get('/me/set/SpO2', function(req,res){ // Blood Oxygen Level
+app.post('/me/set/SpO2', function(req,res){ // Blood Oxygen Level
         
         var query = require('url').parse(req.url,true).query;
         var responseobject = new Object();
@@ -230,7 +230,7 @@ app.get('/me/set/SpO2', function(req,res){ // Blood Oxygen Level
         });
 });
 
-app.get('/me/follow', function(req,res){
+app.post('/me/follow', function(req,res){
         
         var query = require('url').parse(req.url,true).query;
         var responseobject = new Object();
@@ -285,7 +285,7 @@ app.get('/me/follow', function(req,res){
         
         });
 
-app.get('/me/unfollow', function(req,res){
+app.delete('/me/unfollow', function(req,res){
         var query = require('url').parse(req.url,true).query;
         
         var follower = query.follower;
@@ -369,7 +369,7 @@ app.get('/me/following', function(req,res){
 });
 
 
-app.get('/me/post', function (req, res){
+app.post('/me/post', function (req, res){
         
         var query = require('url').parse(req.url,true).query;
         var token = query.token;
